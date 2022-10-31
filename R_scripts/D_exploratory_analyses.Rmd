@@ -1,0 +1,84 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-09-19"
+---
+
+```{r}
+# test for anormality in main dataset
+library(data.table)
+library(nortest)
+task = "Dichotic"
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', task, '_table4R_clean.csv'))
+
+cond_list = c('full_N1_all_mean_amp','odds_N1_all_mean_amp',
+              'x99_N1_all_mean_amp','x90_N1_all_mean_amp',
+              'full_P3_rare_frequent_mean_amp','odds_P3_rare_frequent_mean_amp',
+              'x99_P3_rare_frequent_mean_amp','x90_P3_rare_frequent_mean_amp')
+res_list = NULL
+for (j in cond_list){
+  res<-ad.test(main_df[[j]])
+  pretty_res = pub_ready_stats(res)
+  res_list = rbind(res_list,cbind(j,pretty_res))
+}
+res_list
+
+```
+
+```{r}
+# test for anormality in validation dataset
+task = "DSCPT"
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', task, '_table4R_clean.csv'))
+
+cond_list = c('full_P1_all_mean_amp','odds_P1_all_mean_amp',
+              'x99_P1_all_mean_amp','x90_P1_all_mean_amp',
+              'full_N2_rare_frequent_mean_amp','odds_N2_rare_frequent_mean_amp',
+              'x99_N2_rare_frequent_mean_amp','x90_N2_rare_frequent_mean_amp')
+res_list = NULL
+for (j in cond_list){
+  res<-ad.test(main_df[[j]])
+  pretty_res = pub_ready_stats(res)
+  res_list = rbind(res_list,cbind(j,pretty_res))
+}
+res_list
+```
+
+```{r}
+library(PMCMRplus)
+#gesdtest
+task = "Dichotic"
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', task, '_table4R_clean.csv'))
+comps = c('_N1_all_mean_amp','_P3_rare_frequent_mean_amp')
+conds = c('full','odds','x99','x90')
+res_list = NULL
+for (j in comps) {
+  for (jj in conds){
+    x = paste0(jj,j)
+res<-gesdTest(main_df[[x]],10)
+num_of_outliers<-sum(res$p.value<.05/8)
+res_list = rbind(res_list,cbind(x,num_of_outliers))
+  }
+}
+res_list
+
+res_list = NULL
+task = "DSCPT"
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', task, '_table4R_clean.csv'))
+comps = c('_P1_all_mean_amp','_N2_rare_frequent_mean_amp')
+conds = c('full','odds','x99','x90')
+res_list = NULL
+for (j in comps) {
+  for (jj in conds){
+    x = paste0(jj,j)
+res<-gesdTest(main_df[[x]],10)
+num_of_outliers<-sum(res$p.value<.05/8)
+res_list = rbind(res_list,cbind(x,num_of_outliers))
+  }
+}
+res_list
+
+
+
+```
+
+

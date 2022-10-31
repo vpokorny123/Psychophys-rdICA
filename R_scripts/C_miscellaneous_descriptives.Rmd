@@ -1,0 +1,84 @@
+
+```{r}
+mean_list = NULL
+max_list = NULL
+tasks = c("Dichotic","DSCPT")
+i = 1
+for (j in tasks) {
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', j, '_table4R_clean.csv'))
+
+# run times relative to full
+res_list[((i-1)*3)+1]<-mean(main_df$`full ica elapsed time`)/mean(main_df$`odds ica elapsed time`)
+res_list[((i-1)*3)+2]<-mean(main_df$`full ica elapsed time`)/namean(suppressWarnings(as.numeric(main_df$`99% PCA-ICA elapsed time`)))
+res_list[((i-1)*3)+3]<-mean(main_df$`full ica elapsed time`)/namean(suppressWarnings(as.numeric(main_df$`90% PCA-ICA elapsed time`)))
+
+max_list[((i-1)*3)+1]<-max(main_df$`full ica elapsed time`)/max(main_df$`odds ica elapsed time`)
+max_list[((i-1)*3)+2]<-max(main_df$`full ica elapsed time`)/max(main_df$`99% PCA-ICA elapsed time`)
+max_list[((i-1)*3)+3]<-max(main_df$`full ica elapsed time`)/max(main_df$`90% PCA-ICA elapsed time`)
+i = i +1
+}
+round(res_list,2)
+round(max_list,2)
+
+```
+
+```{r}
+# of trials
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/Dichotic_table4R_clean.csv'))
+summary(main_df$`# of rare trials full`)
+summary(main_df$`# of freq trials full`)
+hist(main_df$`# of rare trials full`)
+hist(main_df$`# of freq trials full`)
+
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/DSCPT_table4R_clean.csv'))
+summary(main_df$`# of rare trials full`)
+summary(main_df$`# of freq trials full`)
+hist(main_df$`# of rare trials full`)
+hist(main_df$`# of freq trials full`)
+```
+
+```{r}
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+plot_list = NULL
+tasks = c("Dichotic","DSCPT")
+for (j in tasks){
+  if (j == "Dichotic"){
+      title_str = "Main Dataset"
+  }else{
+        title_str = "Validation Dataset"  
+        }
+  main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', j, '_table4R_clean.csv'))
+  main_df$`99% Threshold` = main_df$`99% thresh # of PCs`
+main_df$`90% Threshold` = main_df$`90% thresh # of PCs`
+  main_long_df = tidyr::pivot_longer(main_df, cols = c("99% Threshold","90% Threshold"), names_to = "Condition", values_to = "# of PCs after threshold")
+
+# histograms with number of ic components
+mean_90  = round(mean(main_df$`90% thresh # of PCs`),2)
+mean_99 = round(mean(main_df$`99% thresh # of PCs`),2)
+stats_text_90 = paste0(mean_90,
+                    ' (',
+                    round(sd(main_df$`90% thresh # of PCs`),2),
+                    ')')
+stats_text_99 = paste0(mean_99,
+                    ' (',
+                    round(sd(main_df$`99% thresh # of PCs`),2),
+                    ')')
+
+plot_list[[j]] = ggplot(main_long_df, aes(x = `# of PCs after threshold`, color = Condition, fill = Condition, alpha = Condition))+ geom_histogram(binwidth = 1,position = "identity") + 
+  ggtitle(title_str,) + theme_classic() +
+  scale_alpha_manual(values=c(.2,.2)) +
+  geom_vline(xintercept=mean_90,show.legend = F, color = "#F8766D", linetype = "dashed")+
+  geom_vline(xintercept=mean_99,show.legend = F, color = "#00BFC4", linetype = "dashed")+
+  annotate(geom = 'text', label = stats_text_90,
+           x = mean_90,
+           y = Inf, hjust =-.1, vjust = 1,color = "#F8766D")+
+  annotate(geom = 'text', label = stats_text_99,
+           x = mean_99,
+           y = Inf, hjust = -.1, vjust = 1,color = "#00BFC4")+
+  ylab("Count")
+}
+final_plot = ggarrange(plotlist = plot_list,ncol = 1,common.legend = TRUE,legend = "bottom")
+ggsave('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/PC_count.png',final_plot)
+```

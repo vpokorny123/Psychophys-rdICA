@@ -1,0 +1,23 @@
+
+```{r}
+excl_count = NULL
+tasks = c("Dichotic","DSCPT")
+for (j in tasks){
+main_df<-fread(paste0('/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/', j, '_table4R.csv'))
+#remove folks with less than 25 rare trials
+#labels got swapped in matlab so swapping them back
+if (mean(main_df$`# of freq trials full`)<100){
+main_df$`# of placehold trials full`<-main_df$`# of rare trials full`
+main_df$`# of rare trials full`<-main_df$`# of freq trials full`
+main_df$`# of freq trials full`<-main_df$`# of placehold trials full`
+}
+#count and then remove folks here
+excl_count = rbind(excl_count,cbind(j,sum(main_df$`# of rare trials full`<25)))
+main_df = main_df[main_df$`# of rare trials full`>=25,]
+#save out
+write.csv(main_df,paste0("/Users/pokor076/My Drive/Psychophysiology - ICA/Full Manuscript/R_scripts/csvs/", j, "_table4R_clean.csv"))
+}
+excl_count
+
+```
+
